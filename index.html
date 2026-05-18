@@ -67,7 +67,7 @@
             background-size: 20px 20px;
         }
 
-        /* Ekran Katmanları (Menü, Mağaza, Game Over) */
+        /* Ekran Katmanları */
         .screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -96,7 +96,6 @@
         }
 
         .menu-btn.secondary { background: #1f6feb; }
-        .menu-btn.danger { background: #ff3366; box-shadow: 0 0 10px #ff3366;}
 
         /* Mağaza Tasarımı */
         #shop-screen {
@@ -157,6 +156,7 @@
             border-radius: 4px;
             font-size: 12px;
             font-weight: bold;
+            cursor: pointer;
         }
 
         .shop-item button.equipped { background: #1f6feb; }
@@ -228,29 +228,29 @@
         <div id="shop-screen" class="screen" style="display: none;">
             <div class="shop-header">
                 <span style="font-weight: bold; color: #ffd700;">🛒 MAĞAZA</span>
-                <button style="background:#ff3366; color:white; border:none; padding:5px 10px; border-radius:5px; font-weight:bold;" onclick="closeShop()">KAPAT</button>
+                <button style="background:#ff3366; color:white; border:none; padding:5px 10px; border-radius:5px; font-weight:bold; cursor:pointer;" onclick="closeShop()">KAPAT</button>
             </div>
             
             <div class="shop-scroll">
                 <div class="shop-category">
                     <div class="category-title">🟢 SADE (50 PUAN)</div>
-                    <div class="shop-item"><span>🔴 Klasik Kırmızı</span><button id="skin-s1" onclick="handleSkin('s1', 50)">Seç</button></div>
-                    <div class="shop-item"><span>🔵 Klasik Mavi</span><button id="skin-s2" onclick="handleSkin('s2', 50)">Seç</button></div>
-                    <div class="shop-item"><span>💛 Klasik Sarı</span><button id="skin-s3" onclick="handleSkin('s3', 50)">Seç</button></div>
+                    <div class="shop-item"><span>🔴 Klasik Kırmızı</span><button id="skin-s1" onclick="handleSkin('s1', 50)">50 P</button></div>
+                    <div class="shop-item"><span>🔵 Klasik Mavi</span><button id="skin-s2" onclick="handleSkin('s2', 50)">50 P</button></div>
+                    <div class="shop-item"><span>💛 Klasik Sarı</span><button id="skin-s3" onclick="handleSkin('s3', 50)">50 P</button></div>
                 </div>
 
                 <div class="shop-category">
                     <div class="category-title">✨ PARLAK (100 PUAN)</div>
-                    <div class="shop-item"><span>🌸 Neon Pembe</span><button id="skin-p1" onclick="handleSkin('p1', 100)">Seç</button></div>
-                    <div class="shop-item"><span>💎 Neon Turkuaz</span><button id="skin-p2" onclick="handleSkin('p2', 100)">Seç</button></div>
-                    <div class="shop-item"><span>🍇 Neon Mor</span><button id="skin-p3" onclick="handleSkin('p3', 100)">Seç</button></div>
+                    <div class="shop-item"><span>🌸 Neon Pembe</span><button id="skin-p1" onclick="handleSkin('p1', 100)">100 P</button></div>
+                    <div class="shop-item"><span>💎 Neon Turkuaz</span><button id="skin-p2" onclick="handleSkin('p2', 100)">100 P</button></div>
+                    <div class="shop-item"><span>🍇 Neon Mor</span><button id="skin-p3" onclick="handleSkin('p3', 100)">100 P</button></div>
                 </div>
 
                 <div class="shop-category">
                     <div class="category-title">👑 ÖZEL (150 PUAN)</div>
-                    <div class="shop-item"><span>🥊 Khamzat Chimaev</span><button id="skin-o1" onclick="handleSkin('o1', 150)">Seç</button></div>
-                    <div class="shop-item"><span>🌌 Manifest Modu</span><button id="skin-o2" onclick="handleSkin('o2', 150)">Seç</button></div>
-                    <div class="shop-item"><span>☪️ İslam Teması</span><button id="skin-o3" onclick="handleSkin('o3', 150)">Seç</button></div>
+                    <div class="shop-item"><span>🥊 Khamzat Chimaev</span><button id="skin-o1" onclick="handleSkin('o1', 150)">150 P</button></div>
+                    <div class="shop-item"><span>🌌 Manifest Modu</span><button id="skin-o2" onclick="handleSkin('o2', 150)">150 P</button></div>
+                    <div class="shop-item"><span>☪️ İslam Teması</span><button id="skin-o3" onclick="handleSkin('o3', 150)">150 P</button></div>
                 </div>
             </div>
         </div>
@@ -286,31 +286,27 @@
         document.getElementById("high-score").innerText = highScore;
 
         let gameSpeed = 130;
-        let gameInterval;
+        let gameInterval = null;
         let isGameOver = false;
         let isPlaying = false;
 
         let animationPulse = 0;
         let pulseDirection = 1;
 
-        // Mağaza ve Tema Listesi
         let unlockedSkins = JSON.parse(localStorage.getItem("unlockedSkins2")) || ['default'];
         let activeSkin = localStorage.getItem("activeSkin2") || 'default';
 
         const themes = {
             'default': { bg: '#0d1117', grid: '#161b22', snake: '#00ff88', head: '#00ffaa', glow: 'rgba(0, 255, 136, 0.5)' },
-            // Sade (50 Puan)
             's1': { bg: '#1a0d0d', grid: '#261313', snake: '#ff4d4d', head: '#ff8080', glow: 'rgba(255, 77, 77, 0.4)' },
             's2': { bg: '#0d1a26', grid: '#132639', snake: '#3399ff', head: '#80bfff', glow: 'rgba(51, 153, 255, 0.4)' },
             's3': { bg: '#1a1a0d', grid: '#262613', snake: '#ffcc00', head: '#ffdd55', glow: 'rgba(255, 204, 0, 0.4)' },
-            // Parlak (100 Puan)
             'p1': { bg: '#1a0514', grid: '#330a29', snake: '#ff00aa', head: '#ff66cc', glow: 'rgba(255, 0, 170, 0.7)' },
             'p2': { bg: '#051a1a', grid: '#0a3333', snake: '#00ffff', head: '#99ffff', glow: 'rgba(0, 255, 255, 0.7)' },
             'p3': { bg: '#10051a', grid: '#200a33', snake: '#9933ff', head: '#cc99ff', glow: 'rgba(153, 51, 255, 0.7)' },
-            // Özel (150 Puan)
-            'o1': { bg: '#1a0f05', grid: '#331e0a', snake: '#ff6600', head: '#ffffff', glow: 'rgba(255, 102, 0, 0.8)' }, // Khamzat
-            'o2': { bg: '#050510', grid: '#0d0d26', snake: '#4d4dff', head: '#00ffff', glow: 'rgba(77, 77, 255, 0.8)' },  // Manifest
-            'o3': { bg: '#051a05', grid: '#0a330a', snake: '#00cc44', head: '#ffffff', glow: 'rgba(0, 204, 68, 0.9)' }   // İslam
+            'o1': { bg: '#1a0f05', grid: '#331e0a', snake: '#ff6600', head: '#ffffff', glow: 'rgba(255, 102, 0, 0.8)' },
+            'o2': { bg: '#050510', grid: '#0d0d26', snake: '#4d4dff', head: '#00ffff', glow: 'rgba(77, 77, 255, 0.8)' },
+            'o3': { bg: '#051a05', grid: '#0a330a', snake: '#00cc44', head: '#ffffff', glow: 'rgba(0, 204, 68, 0.9)' }
         };
 
         function updateThemeStyles() {
@@ -341,7 +337,6 @@
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. EMOJİLERİ ÇİZ
             let foodEmoji = "🍎";
             if (food.type === 'gold') foodEmoji = "🍏";
             if (food.type === 'diamond') foodEmoji = "💎";
@@ -352,7 +347,6 @@
             ctx.textBaseline = "middle";
             ctx.fillText(foodEmoji, (food.x * gridSize) + gridSize / 2, (food.y * gridSize) + gridSize / 2);
 
-            // 2. YILANI ÇİZ
             snake.forEach((part, index) => {
                 const isHead = index === 0;
                 const currentTheme = themes[activeSkin] || themes['default'];
@@ -437,7 +431,7 @@
             }
         }
 
-        // Ekran ve Buton Kontrolleri
+        // MENÜ FONKSİYONLARI (DÜZELTİLDİ)
         function startGame() {
             document.getElementById("main-menu").style.display = "none";
             isPlaying = true;
@@ -483,9 +477,9 @@
         function backToMenu() {
             document.getElementById("game-over-screen").style.display = "none";
             document.getElementById("main-menu").style.display = "flex";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // Gelişmiş Mağaza Yönetimi
         function handleSkin(id, cost) {
             if (unlockedSkins.includes(id)) {
                 activeSkin = id;
@@ -504,7 +498,7 @@
                     drawGame();
                     showAlert("🛒 TEMA SATIN ALINDI!");
                 } else {
-                    alert(`Bu temayı açmak için en yüksek skorunun (High Score) en az ${cost} olması lazım kral!`);
+                    alert(`Bu temayı açmak için en yüksek skorunun en az ${cost} olması lazım kral!`);
                 }
             }
         }
@@ -516,4 +510,9 @@
                 if (!btn) return;
 
                 if (activeSkin === id) {
-               
+                    btn.innerText = "Seçili";
+                    btn.className = "equipped";
+                } else if (unlockedSkins.includes(id)) {
+                    btn.innerText = "Seç";
+                    btn.className = "unlocked";
+                }
