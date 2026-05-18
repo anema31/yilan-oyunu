@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yılan Oyunu - Sade & Seri Sürüm</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --grid-color: #161b22;
+            --snake-color: #00ff88;
+            --snake-head: #00ffaa;
+            --text-color: #ffffff;
+            --glow-color: rgba(0, 255, 136, 0.5);
+        }
+
+        body {
+            background-color: #070a0e;
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        h1 {
+            margin: 5px 0;
+            font-size: 26px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--snake-color);
+            color: var(--snake-color);
+            text-align: center;
+        }
+
+        #score-board {
+            display: flex;
+            gap: 20px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #game-container {
+            position: relative;
+            width: 340px;
+            height: 340px;
+            background-color: var(--bg-color);
+            border: 3px solid var(--snake-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--glow-color);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #070a0e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
+
+        #shop-screen {
+            justify-content: flex-start;
+            padding-top: 15px;
+            overflow-y: auto;
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            margin-bottom: 10px;
+        }
+
+        .shop-scroll {
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 20px;
+        }
+
+        .shop-category {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        .category-title {
+            font-size: 13px;
+            color: #8b949e;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 2px;
+        }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: #161b22;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .shop-item button {
+            background: #30363d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .shop-item button.equipped { background: #1f6feb; }
+        .shop-item button.unlocked { background: #238636; }
+
+        /* Alt panel düzeni: Yön tuşları ve Mağaza butonu yan yana */
+        #bottom-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+            gap: 15px;
+        }
+
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(3, 65px);
+            grid-template-rows: repeat(3, 65px);
+            gap: 10px;
+        }
+
+        .btn {
+            background: #21262d;
+            border: 2px solid #30363d;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.92);
+            background: var(--snake-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--snake-color);
+        }
+
+        #up { grid-column: 2; grid-row: 1; }
+        #left { grid-column: 1; grid-row: 2; }
+        #right { grid-column: 3; grid-row: 2; }
+        #down { grid-column: 2; grid-row: 3; }
+
+        /* Yeni Mağaza Açma Butonu */
+        .action-btn {
+            background: #1f6feb;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(1, 111, 235, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-btn:active { transform: scale(0.95); }
+
+        .menu-btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 8px;
+            width: 160px;
+            cursor: pointer;
+        }
+
+        #alert-box {
+            position: absolute;
+            top: 15px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: black; padding: 4px 12px; border-radius: 15px;
+            font-weight: bold; font-size: 13px; display: none;
+            box-shadow: 0 0 12px #ffd700; z-index: 999999; white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>YILAN KOMBAT</h1>
+
+    <div id="score-board">
+        <div>Skor: <span id="current-score">0</span></div>
+        <div>En Yüksek: <span id="high-score">0</span></div>
+    </div>
+
+    <div id="game-container">
+        <div id="alert-box"></div>
+        <canvas id="gameCanvas" width="340" height="340"></canvas>
+
+        <div id="shop-screen" class="screen" style="display: none;">
+            <div class="shop-header">
+                <span style="font-weight: bold; color: #ffd700;">🛒 MAĞAZA</span>
+                <button style="background:#ff3366; color:white; border:none; padding:5px 10px; border-radius:5px; font-weight:bold; cursor:pointer;" id="closeShopBtn">KAPAT</button>
+            </div>
+            
+            <div class="shop-scroll">
+                <div class="shop-category">
+                    <div class="category-title">🟢 SADE (50 PUAN)</div>
+                    <div class="shop-item"><span>🔴 Klasik Kırmızı</span><button id="skin-s1">50 P</button></div>
+                    <div class="shop-item"><span>🔵 Klasik Mavi</span><button id="skin-s2">50 P</button></div>
+                    <div class="shop-item"><span>💛 Klasik Sarı</span><button id="skin-s3">50 P</button></div>
+                </div>
+
+                <div class="shop-category">
+                    <div class="category-title">✨ PARLAK (100 PUAN)</div>
+                    <div class="shop-item"><span>🌸 Neon Pembe</span><button id="skin-p1">100 P</button></div>
+                    <div class="shop-item"><span>💎 Neon Turkuaz</span><button id="skin-p2">100 P</button></div>
+                    <div class="shop-item"><span>🍇 Neon Mor</span><button id="skin-p3">100 P</button></div>
+                </div>
+
+                <div class="shop-category">
+                    <div class="category-title">👑 ÖZEL (150 PUAN)</div>
+                    <div class="shop-item"><span>🥊 Khamzat Chimaev</span><button id="skin-o1">150 P</button></div>
+                    <div class="shop-item"><span>🌌 Manifest Modu</span><button id="skin-o2">150 P</button></div>
+                    <div class="shop-item"><span>☪️ İslam Teması</span><button id="skin-o3">150 P</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen" style="display: none;">
+            <h2>KAYBETTİN!</h2>
+            <p id="final-score-text">Skorun: 0</p>
+            <button class="menu-btn" id="restartBtn">Tekrar Dene</button>
+        </div>
+    </div>
+
+    <div id="bottom-panel">
+        <div id="controls">
+            <div class="btn" id="up">▲</div>
+            <div class="btn" id="left">◀</div>
+            <div class="btn" id="right">▶</div>
+            <div class="btn" id="down">▼</div>
+        </div>
+        <button class="action-btn" id="shopBtn">🛒 MAĞAZA</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [{x: 9, y: 9}];
+        let direction = {x: 0, y: 0};
+        let food = {x: 5, y: 5, type: 'normal'};
+        
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem("highScore")) || 0;
+        document.getElementById("high-score").innerText = highScore;
+
+        let gameSpeed = 130;
+        let gameInterval = null;
+        let isGameOver = false;
+        let isPlaying = true; // Oyun direkt aktif başlıyor
+
+        let animationPulse = 0;
+        let pulseDirection = 1;
+
+        let unlockedSkins = JSON.parse(localStorage.getItem("unlockedSkins2")) || ['default'];
+        let activeSkin = localStorage.getItem("activeSkin2") || 'default';
+
+        const themes = {
+            'default': { bg: '#0d1117', grid: '#161b22', snake: '#00ff88', head: '#00ffaa', glow: 'rgba(0, 255, 136, 0.5)' },
+            's1': { bg: '#1a0d0d', grid: '#261313', snake: '#ff4d4d', head: '#ff8080', glow: 'rgba(255, 77, 77, 0.4)' },
+            's2': { bg: '#0d1a26', grid: '#132639', snake: '#3399ff', head: '#80bfff', glow: 'rgba(51, 153, 255, 0.4)' },
+            's3': { bg: '#1a1a0d', grid: '#262613', snake: '#ffcc00', head: '#ffdd55', glow: 'rgba(255, 204, 0, 0.4)' },
+            'p1': { bg: '#1a0514', grid: '#330a29', snake: '#ff00aa', head: '#ff66cc', glow: 'rgba(255, 0, 170, 0.7)' },
+            'p2': { bg: '#051a1a', grid: '#0a3333', snake: '#00ffff', head: '#99ffff', glow: 'rgba(0, 255, 255, 0.7)' },
+            'p3': { bg: '#10051a', grid: '#200a33', snake: '#9933ff', head: '#cc99ff', glow: 'rgba(153, 51, 255, 0.7)' },
+            'o1': { bg: '#1a0f05', grid: '#331e0a', snake: '#ff6600', head: '#ffffff', glow: 'rgba(255, 102, 0, 0.8)' },
+            'o2': { bg: '#050510', grid: '#0d0d26', snake: '#4d4dff', head: '#00ffff', glow: 'rgba(77, 77, 255, 0.8)' },
+            'o3': { bg: '#051a05', grid: '#0a330a', snake: '#00cc44', head: '#ffffff', glow: 'rgba(0, 204, 68, 0.9)' }
+        };
+
+        function updateThemeStyles() {
+            const currentTheme = themes[activeSkin] || themes['default'];
+            document.documentElement.style.setProperty('--bg-color', currentTheme.bg);
+            document.documentElement.style.setProperty('--grid-color', currentTheme.grid);
+            document.documentElement.style.setProperty('--snake-color', currentTheme.snake);
+            document.documentElement.style.setProperty('--snake-head', currentTheme.head);
+            document.getElementById("game-container").style.borderColor = currentTheme.snake;
+            document.getElementById("game-container").style.boxShadow = `0 0 20px ${currentTheme.glow}`;
+        }
+
+        function mainGameLoop() {
+            if (isGameOver || !isPlaying) return;
+            animationPulse += 0.1 * pulseDirection;
+            if (animationPulse > 2 || animationPulse < 0) pulseDirection *= -1;
+
+            moveSnake();
+            if (checkCollision()) { endGame(); return; }
+            checkFoodEat();
+            drawGame();
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let foodEmoji = "🍎";
+            if (food.type === 'gold') foodEmoji = "🍏";
+            if (food.type === 'diamond') foodEmoji = "💎";
+            if (food.type === 'surprise') foodEmoji = "🎁";
+
+            ctx.font = `${16 + animationPulse}px Arial`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(foodEmoji, (food.x * gridSize) + gridSize / 2, (food.y * gridSize) + gridSize / 2);
+
+            snake.forEach((part, index) => {
+                const isHead = index === 0;
+                const currentTheme = themes[activeSkin] || themes['default'];
+                ctx.shadowBlur = isHead ? 15 : 8;
+                ctx.shadowColor = isHead ? currentTheme.head : currentTheme.snake;
+                ctx.fillStyle = isHead ? currentTheme.head : currentTheme.snake;
+
+                ctx.beginPath();
+                let size = gridSize - 2;
+                let offset = 1;
+                if(!isHead) {
+                    size -= Math.min(index * 0.3, 4);
+                    offset += Math.min(index * 0.15, 2);
+                }
+                ctx.roundRect((part.x * gridSize) + offset, (part.y * gridSize) + offset, size, size, isHead ? 8 : 5);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+        }
+
+        function moveSnake() {
+            if (direction.x === 0 && direction.y === 0) return;
+            const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+            snake.unshift(head);
+            snake.pop();
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) return true;
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) return true;
+            }
+            return false;
+        }
+
+        function showAlert(text) {
+            const box = document.getElementById("alert-box");
+            box.innerText = text;
+            box.style.display = "block";
+            setTimeout(() => { box.style.display = "none"; }, 2000);
+        }
+
+        function checkFoodEat() {
+            const head = snake[0];
+            if (head.x === food.x && head.y === food.y) {
+                if (food.type === 'normal') score += 4;
+                else if (food.type === 'gold') score += 10;
+                else if (food.type === 'diamond') { score += 70; showAlert("💎 ELMAS ELMA! +70 PUAN!"); }
+                else if (food.type === 'surprise') {
+                    let rand = Math.floor(Math.random() * 3) + 1;
+                    if (rand === 1) { score += 50; showAlert("🎁 SÜPRİZ: +50 PUAN!"); }
+                    else if (rand === 2) { score -= 70; if (score < 0) score = 0; showAlert("🎁 PATLADIN! -70 PUAN!"); }
+                    else if (rand === 3) { score = highScore + 10; showAlert("🚀 ROKET! REKORU 10 PUAN GEÇTİN!"); }
+                }
+
+                document.getElementById("current-score").innerText = score;
+                snake.push({...snake[snake.length - 1]});
+                
+                if (gameSpeed > 60) {
+                    gameSpeed -= 2;
+                    clearInterval(gameInterval);
+                    gameInterval = setInterval(mainGameLoop, gameSpeed);
+                }
+                generateFood();
+            }
+        }
+
+        function generateFood() {
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+            let chance = Math.random();
+            if (chance < 0.03) food.type = 'diamond';
+            else if (chance < 0.13) food.type = 'surprise';
+            else if (chance < 0.28) food.type = 'gold';
+            else food.type = 'normal';
+
+            for (let part of snake) {
+                if (part.x === food.x && part.y === food.y) { generateFood(); break; }
+            }
+        }
+
+        function openShop() {
+            isPlaying = false; // Alışveriş yaparken oyunu durdur
+            document.getElementById("shop-screen").style.display = "flex";
+            updateShopButtons();
+        }
+
+        function closeShop() {
+            document.getElementById("shop-screen").style.display = "none";
+            isPlaying = true; // Mağazayı kapatınca devam et
+        }
+
+        function endGame() {
+            isGameOver = true;
+            isPlaying = false;
+            clearInterval(gameInterval);
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem("highScore", highScore);
+                document.getElementById("high-score").innerText = highScore;
+            }
+            document.getElementById("final-score-text").innerText = `Skorun: ${score}`;
+            document.getElementById("game-over-screen").style.display = "flex";
+        }
+
+        function resetGame() {
+            snake = [{x: 9, y: 9}];
+            direction = {x: 0, y: 0};
+            score = 0;
+            gameSpeed = 130;
+            isGameOver = false;
+            isPlaying = true;
+            document.getElementById("current-score").innerText = score;
+            document.getElementById("game-over-screen").style.display = "none";
+            generateFood();
+            clearInterval(gameInterval);
+            gameInterval = setInterval(mainGameLoop, gameSpeed);
+        }
+
+        function handleSkin(id, cost) {
+            if (unlockedSkins.includes(id)) {
+                activeSkin = id;
+                localStorage.setItem("activeSkin2", activeSkin);
+                updateThemeStyles();
+                updateShopButtons();
+                drawGame();
+            } else {
+                if (highScore >= cost) {
+                    unlockedSkins.push(id);
+                    localStorage.setItem("unlockedSkins2", JSON.stringify(unlockedSkins));
+                    activeSkin = id;
+                    localStorage.setItem("activeSkin2", activeSkin);
+                    updateThemeStyles();
+                    updateShopButtons();
+                    drawGame();
+                    showAlert("🛒 TEMA SATIN ALINDI!");
+                } else {
+                    alert(`Bu temayı açmak için en yüksek skorunun en az ${cost} olması lazım kral!`);
+                }
+            }
+        }
+
+        function updateShopButtons() {
+            const allSkinIds = ['s1', 's2', 's3', 'p1', 'p2', 'p3', 'o1', 'o2', 'o3'];
+            allSkinIds.forEach(id => {
+                const btn = document.getElementById(`skin-${id}`);
+                if (!btn) return;
+
+                if (activeSkin === id) {
+                    btn.innerText = "Seçili";
+                    btn.className = "equipped";
+                } else if (unlockedSkins.includes(id)) {
+                    btn.innerText = "Seç";
+                    btn.className = "unlocked";
+                } else {
+                    let price = id.startsWith('s') ? '50 P' : id.startsWith('p') ? '100 P' : '150 P';
+                    btn.innerText = price;
+                    btn.className = "";
+                }
+            });
+        }
+
+        // Event Listeners
+        document.getElementById("shopBtn").addEventListener("click", openShop);
+        document.getElementById("closeShopBtn").addEventListener("click", closeShop);
+        document.getElementById("restartBtn").addEventListener("click", resetGame);
+
+       
