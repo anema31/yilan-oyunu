@@ -71,13 +71,13 @@
         .screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(7, 10, 14, 0.95);
+            background: #070a0ed9;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(5px);
-            z-index: 20;
+            z-index: 999; /* En üstte dursunlar diye yükselttim */
         }
 
         .menu-btn {
@@ -202,7 +202,7 @@
             background: rgba(255, 215, 0, 0.9);
             color: black; padding: 4px 12px; border-radius: 15px;
             font-weight: bold; font-size: 13px; display: none;
-            box-shadow: 0 0 12px #ffd700; z-index: 30; white-space: nowrap;
+            box-shadow: 0 0 12px #ffd700; z-index: 9999; white-space: nowrap;
         }
     </style>
 </head>
@@ -221,36 +221,36 @@
         
         <div id="main-menu" class="screen">
             <h2 style="color: #00ff88; margin-bottom: 30px; letter-spacing: 3px;">ANA MENÜ</h2>
-            <button class="menu-btn" onclick="startGame()">OYNA</button>
-            <button class="menu-btn secondary" onclick="openShop()">MAĞAZA</button>
+            <button class="menu-btn" id="playBtn">OYNA</button>
+            <button class="menu-btn secondary" id="shopBtn">MAĞAZA</button>
         </div>
 
         <div id="shop-screen" class="screen" style="display: none;">
             <div class="shop-header">
                 <span style="font-weight: bold; color: #ffd700;">🛒 MAĞAZA</span>
-                <button style="background:#ff3366; color:white; border:none; padding:5px 10px; border-radius:5px; font-weight:bold; cursor:pointer;" onclick="closeShop()">KAPAT</button>
+                <button style="background:#ff3366; color:white; border:none; padding:5px 10px; border-radius:5px; font-weight:bold; cursor:pointer;" id="closeShopBtn">KAPAT</button>
             </div>
             
             <div class="shop-scroll">
                 <div class="shop-category">
                     <div class="category-title">🟢 SADE (50 PUAN)</div>
-                    <div class="shop-item"><span>🔴 Klasik Kırmızı</span><button id="skin-s1" onclick="handleSkin('s1', 50)">50 P</button></div>
-                    <div class="shop-item"><span>🔵 Klasik Mavi</span><button id="skin-s2" onclick="handleSkin('s2', 50)">50 P</button></div>
-                    <div class="shop-item"><span>💛 Klasik Sarı</span><button id="skin-s3" onclick="handleSkin('s3', 50)">50 P</button></div>
+                    <div class="shop-item"><span>🔴 Klasik Kırmızı</span><button onclick="handleSkin('s1', 50)" id="skin-s1">50 P</button></div>
+                    <div class="shop-item"><span>🔵 Klasik Mavi</span><button onclick="handleSkin('s2', 50)" id="skin-s2">50 P</button></div>
+                    <div class="shop-item"><span>💛 Klasik Sarı</span><button onclick="handleSkin('s3', 50)" id="skin-s3">50 P</button></div>
                 </div>
 
                 <div class="shop-category">
                     <div class="category-title">✨ PARLAK (100 PUAN)</div>
-                    <div class="shop-item"><span>🌸 Neon Pembe</span><button id="skin-p1" onclick="handleSkin('p1', 100)">100 P</button></div>
-                    <div class="shop-item"><span>💎 Neon Turkuaz</span><button id="skin-p2" onclick="handleSkin('p2', 100)">100 P</button></div>
-                    <div class="shop-item"><span>🍇 Neon Mor</span><button id="skin-p3" onclick="handleSkin('p3', 100)">100 P</button></div>
+                    <div class="shop-item"><span>🌸 Neon Pembe</span><button onclick="handleSkin('p1', 100)" id="skin-p1">100 P</button></div>
+                    <div class="shop-item"><span>💎 Neon Turkuaz</span><button onclick="handleSkin('p2', 100)" id="skin-p2">100 P</button></div>
+                    <div class="shop-item"><span>🍇 Neon Mor</span><button onclick="handleSkin('p3', 100)" id="skin-p3">100 P</button></div>
                 </div>
 
                 <div class="shop-category">
                     <div class="category-title">👑 ÖZEL (150 PUAN)</div>
-                    <div class="shop-item"><span>🥊 Khamzat Chimaev</span><button id="skin-o1" onclick="handleSkin('o1', 150)">150 P</button></div>
-                    <div class="shop-item"><span>🌌 Manifest Modu</span><button id="skin-o2" onclick="handleSkin('o2', 150)">150 P</button></div>
-                    <div class="shop-item"><span>☪️ İslam Teması</span><button id="skin-o3" onclick="handleSkin('o3', 150)">150 P</button></div>
+                    <div class="shop-item"><span>🥊 Khamzat Chimaev</span><button onclick="handleSkin('o1', 150)" id="skin-o1">150 P</button></div>
+                    <div class="shop-item"><span>🌌 Manifest Modu</span><button onclick="handleSkin('o2', 150)" id="skin-o2">150 P</button></div>
+                    <div class="shop-item"><span>☪️ İslam Teması</span><button onclick="handleSkin('o3', 150)" id="skin-o3">150 P</button></div>
                 </div>
             </div>
         </div>
@@ -258,8 +258,8 @@
         <div id="game-over-screen" class="screen" style="display: none;">
             <h2>KAYBETTİN!</h2>
             <p id="final-score-text">Skorun: 0</p>
-            <button class="menu-btn" onclick="resetGame()">Tekrar Dene</button>
-            <button class="menu-btn secondary" onclick="backToMenu()">Ana Menü</button>
+            <button class="menu-btn" id="restartBtn">Tekrar Dene</button>
+            <button class="menu-btn secondary" id="backMenuBtn">Ana Menü</button>
         </div>
     </div>
 
@@ -321,22 +321,17 @@
 
         function mainGameLoop() {
             if (isGameOver || !isPlaying) return;
-            
             animationPulse += 0.1 * pulseDirection;
             if (animationPulse > 2 || animationPulse < 0) pulseDirection *= -1;
 
             moveSnake();
-            if (checkCollision()) {
-                endGame();
-                return;
-            }
+            if (checkCollision()) { endGame(); return; }
             checkFoodEat();
             drawGame();
         }
 
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             let foodEmoji = "🍎";
             if (food.type === 'gold') foodEmoji = "🍏";
             if (food.type === 'diamond') foodEmoji = "💎";
@@ -357,12 +352,10 @@
                 ctx.beginPath();
                 let size = gridSize - 2;
                 let offset = 1;
-                
                 if(!isHead) {
                     size -= Math.min(index * 0.3, 4);
                     offset += Math.min(index * 0.15, 2);
                 }
-
                 ctx.roundRect((part.x * gridSize) + offset, (part.y * gridSize) + offset, size, size, isHead ? 8 : 5);
                 ctx.fill();
             });
@@ -431,19 +424,47 @@
             }
         }
 
-        function startGame() {
-            document.getElementById("main-menu").style.display = "none";
-            isPlaying = true;
-            resetGame();
+        function handleSkin(id, cost) {
+            if (unlockedSkins.includes(id)) {
+                activeSkin = id;
+                localStorage.setItem("activeSkin2", activeSkin);
+                updateThemeStyles();
+                updateShopButtons();
+                drawGame();
+            } else {
+                if (highScore >= cost) {
+                    unlockedSkins.push(id);
+                    localStorage.setItem("unlockedSkins2", JSON.stringify(unlockedSkins));
+                    activeSkin = id;
+                    localStorage.setItem("activeSkin2", activeSkin);
+                    updateThemeStyles();
+                    updateShopButtons();
+                    drawGame();
+                    showAlert("🛒 TEMA SATIN ALINDI!");
+                } else {
+                    alert(`Bu temayı açmak için en yüksek skorunun en az ${cost} olması lazım kral!`);
+                }
+            }
         }
 
-        function openShop() {
-            document.getElementById("shop-screen").style.display = "flex";
-            updateShopButtons();
-        }
+        function updateShopButtons() {
+            const allSkinIds = ['s1', 's2', 's3', 'p1', 'p2', 'p3', 'o1', 'o2', 'o3'];
+            allSkinIds.forEach(id => {
+                const btn = document.getElementById(`skin-${id}`);
+                if (!btn) return;
 
-        function closeShop() {
-            document.getElementById("shop-screen").style.display = "none";
+                if (activeSkin === id) {
+                    btn.innerText = "Seçili";
+                    btn.className = "equipped";
+                } else if (unlockedSkins.includes(id)) {
+                    btn.innerText = "Seç";
+                    btn.className = "unlocked";
+                } else {
+                    let price = id.startsWith('s') ? '50 P' : id.startsWith('p') ? '100 P' : '150 P';
+                    btn.innerText = price;
+                    btn.className = "";
+                }
+            });
         }
 
         function endGame() {
@@ -473,45 +494,17 @@
             gameInterval = setInterval(mainGameLoop, gameSpeed);
         }
 
-        function backToMenu() {
-            document.getElementById("game-over-screen").style.display = "none";
-            document.getElementById("main-menu").style.display = "flex";
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        // TIKLAMA OLAYLARINI MODERN YÖNTEMLE BAĞLADIM (ASLA KAÇMAZ)
+        document.getElementById("playBtn").addEventListener("click", () => {
+            document.getElementById("main-menu").style.display = "none";
+            isPlaying = true;
+            resetGame();
+        });
 
-        function handleSkin(id, cost) {
-            if (unlockedSkins.includes(id)) {
-                activeSkin = id;
-                localStorage.setItem("activeSkin2", activeSkin);
-                updateThemeStyles();
-                updateShopButtons();
-                drawGame();
-            } else {
-                if (highScore >= cost) {
-                    unlockedSkins.push(id);
-                    localStorage.setItem("unlockedSkins2", JSON.stringify(unlockedSkins));
-                    activeSkin = id;
-                    localStorage.setItem("activeSkin2", activeSkin);
-                    updateThemeStyles();
-                    updateShopButtons();
-                    drawGame();
-                    showAlert("🛒 TEMA SATIN ALINDI!");
-                } else {
-                    alert(`Bu temayı açmak için en yüksek skorunun en az ${cost} olması lazım kral!`);
-                }
-            }
-        }
+        document.getElementById("shopBtn").addEventListener("click", () => {
+            document.getElementById("shop-screen").style.display = "flex";
+            updateShopButtons();
+        });
 
-        // DEĞİŞEN VE BUTONLARI ÇALIŞTIRAN YER BURASI (DÜZELTİLDİ)
-        function updateShopButtons() {
-            const allSkinIds = ['s1', 's2', 's3', 'p1', 'p2', 'p3', 'o1', 'o2', 'o3'];
-            allSkinIds.forEach(id => {
-                const btn = document.getElementById(`skin-${id}`);
-                if (!btn) return;
-
-                if (activeSkin === id) {
-                    btn.innerText = "Seçili";
-                    btn.className = "equipped";
-                } else if (unlockedSkins.includes(id)) {
-                    btn.innerText = "Seç";
-                    btn.className = "unlo
+        document.getElementById("closeShopBtn").addEventListener("click", () => {
+         
