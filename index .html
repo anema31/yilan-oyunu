@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yusuf Geliştiriyor...</title>
+    <style>
+        /* Ekranı tamamen kaplayan siyah arka plan */
+        body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Yazının stili ve parlama efekti */
+        .loading-text {
+            color: #00ff88; /* Canlı yeşil renk */
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 20px;
+            /* Hafifçe büyüyüp küçülme animasyonu */
+            animation: pulse 2s infinite ease-in-out;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.98); opacity: 0.8; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(0.98); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-text">
+        yusuf oyunu geliştiriyor beklemede kalın
+    </div>
+
+</body>
+</html>
