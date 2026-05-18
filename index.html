@@ -10,7 +10,6 @@
             --grid-color: #161b22;
             --snake-color: #00ff88;
             --snake-head: #00ffaa;
-            --food-color: #ff3366;
             --text-color: #ffffff;
             --glow-color: rgba(0, 255, 136, 0.5);
         }
@@ -158,6 +157,7 @@
             justify-content: center;
             border-radius: 7px;
             backdrop-filter: blur(5px);
+            z-index: 10;
         }
 
         #game-over-screen h2 {
@@ -178,6 +178,24 @@
             margin-top: 15px;
             box-shadow: 0 0 10px var(--snake-color);
         }
+
+        /* Bildirim Efekti */
+        #alert-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: black;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            display: none;
+            box-shadow: 0 0 15px #ffd700;
+            z-index: 5;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -190,6 +208,7 @@
     </div>
 
     <div id="game-container">
+        <div id="alert-box"></div>
         <canvas id="gameCanvas" width="360" height="360"></canvas>
         
         <div id="game-over-screen">
@@ -213,12 +232,12 @@
             <button id="skin-1" class="equipped" onclick="selectSkin(1)">Seçili</button>
         </div>
         <div class="shop-item">
-            <span>🌸 Cyberpunk Pembe (10 Puan)</span>
-            <button id="skin-2" class="locked" onclick="buyOrSelectSkin(2, 10)">Kilitle</button>
+            <span>🌸 Cyberpunk Pembe (50 Puan)</span>
+            <button id="skin-2" class="locked" onclick="buyOrSelectSkin(2, 50)">Kilitle</button>
         </div>
         <div class="shop-item">
-            <span>🥊 Chimaev Modu (25 Puan)</span>
-            <button id="skin-3" class="locked" onclick="buyOrSelectSkin(3, 25)">Kilitle</button>
+            <span>🥊 Chimaev Modu (150 Puan)</span>
+            <button id="skin-3" class="locked" onclick="buyOrSelectSkin(3, 150)">Kilitle</button>
         </div>
     </div>
 
@@ -231,28 +250,28 @@
 
         let snake = [{x: 9, y: 9}];
         let direction = {x: 0, y: 0};
-        let food = {x: 5, y: 5, isGold: false};
+        
+        // Elma tipleri: 'normal', 'gold', 'diamond', 'surprise'
+        let food = {x: 5, y: 5, type: 'normal'};
         
         let score = 0;
-        let highScore = localStorage.getItem("highScore") || 0;
+        let highScore = parseInt(localStorage.getItem("highScore")) || 0;
         document.getElementById("high-score").innerText = highScore;
 
         let gameSpeed = 130;
         let gameInterval;
         let isGameOver = false;
 
-        // Animasyon Değişkenleri
         let animationPulse = 0;
         let pulseDirection = 1;
 
-        // Mağaza Değişkenleri
         let unlockedSkins = JSON.parse(localStorage.getItem("unlockedSkins")) || [1];
         let activeSkin = localStorage.getItem("activeSkin") || 1;
 
         const themes = {
-            1: { bg: '#0d1117', grid: '#161b22', snake: '#00ff88', head: '#00ffaa', food: '#ff3366', glow: 'rgba(0, 255, 136, 0.5)' },
-            2: { bg: '#1a0f1a', grid: '#2d142c', snake: '#ff007f', head: '#ff77ff', food: '#00ffff', glow: 'rgba(255, 0, 127, 0.5)' },
-            3: { bg: '#1f1300', grid: '#3a2200', snake: '#ff9900', head: '#ffffff', food: '#ff3333', glow: 'rgba(255, 153, 0, 0.5)' }
+            1: { bg: '#0d1117', grid: '#161b22', snake: '#00ff88', head: '#00ffaa', glow: 'rgba(0, 255, 136, 0.5)' },
+            2: { bg: '#1a0f1a', grid: '#2d142c', snake: '#ff007f', head: '#ff77ff', glow: 'rgba(255, 0, 127, 0.5)' },
+            3: { bg: '#1f1300', grid: '#3a2200', snake: '#ff9900', head: '#ffffff', glow: 'rgba(255, 153, 0, 0.5)' }
         };
 
         function updateThemeStyles() {
@@ -261,19 +280,15 @@
             document.documentElement.style.setProperty('--grid-color', currentTheme.grid);
             document.documentElement.style.setProperty('--snake-color', currentTheme.snake);
             document.documentElement.style.setProperty('--snake-head', currentTheme.head);
-            document.documentElement.style.setProperty('--food-color', currentTheme.food);
-            document.documentElement.style.setProperty('--glow-color', currentTheme.glow);
             document.getElementById("game-container").style.borderColor = currentTheme.snake;
             document.getElementById("game-container").style.boxShadow = `0 0 20px ${currentTheme.glow}`;
         }
 
-        // Oyun Döngüsü
         function mainGameLoop() {
             if (isGameOver) return;
             
-            // Animasyon puls değerini güncelle (yemlerin parlaması için)
             animationPulse += 0.1 * pulseDirection;
-            if (animationPulse > 3 || animationPulse < 0) pulseDirection *= -1;
+            if (animationPulse > 2 || animationPulse < 0) pulseDirection *= -1;
 
             moveSnake();
             if (checkCollision()) {
@@ -284,33 +299,42 @@
             drawGame();
         }
 
+        function showAlert(text) {
+            const box = document.getElementById("alert-box");
+            box.innerText = text;
+            box.style.display = "block";
+            setTimeout(() => { box.style.display = "none"; }, 2000);
+        }
+
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Yemi Çiz (Hafif büyüyüp küçülme animasyonlu)
-            ctx.shadowBlur = 10 + animationPulse;
-            ctx.shadowColor = food.isGold ? "#ffd700" : themes[activeSkin].food;
-            ctx.fillStyle = food.isGold ? "#ffd700" : themes[activeSkin].food;
-            
-            ctx.beginPath();
-            let radius = (gridSize / 2) - 2 + (animationPulse * 0.5);
-            if (radius < 2) radius = 2;
-            ctx.arc((food.x * gridSize) + gridSize/2, (food.y * gridSize) + gridSize/2, radius, 0, Math.PI * 2);
-            ctx.fill();
+            // 1. EMOJİ ELMALARI ÇİZ
+            let foodEmoji = "🍎";
+            if (food.type === 'gold') foodEmoji = "🍏";
+            if (food.type === 'diamond') foodEmoji = "💎";
+            if (food.type === 'surprise') foodEmoji = "🎁";
 
-            // 2. Yılanı Çiz (Modern yuvarlatılmış neon tasarım)
+            ctx.font = `${16 + animationPulse}px Arial`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+                foodEmoji, 
+                (food.x * gridSize) + gridSize / 2, 
+                (food.y * gridSize) + gridSize / 2
+            );
+
+            // 2. YILANI ÇİZ (Modern animasyonlu neon gövde)
             snake.forEach((part, index) => {
                 const isHead = index === 0;
                 ctx.shadowBlur = isHead ? 15 : 8;
                 ctx.shadowColor = isHead ? themes[activeSkin].head : themes[activeSkin].snake;
                 ctx.fillStyle = isHead ? themes[activeSkin].head : themes[activeSkin].snake;
 
-                // Yumuşak köşeli kare çizimi
                 ctx.beginPath();
                 let size = gridSize - 2;
                 let offset = 1;
                 
-                // Kuyruğa doğru hafifçe küçülme animasyonu
                 if(!isHead) {
                     size -= Math.min(index * 0.3, 4);
                     offset += Math.min(index * 0.15, 2);
@@ -320,7 +344,7 @@
                 ctx.fill();
             });
             
-            ctx.shadowBlur = 0; // Gölgeyi sıfırla
+            ctx.shadowBlur = 0;
         }
 
         function moveSnake() {
@@ -332,9 +356,7 @@
 
         function checkCollision() {
             const head = snake[0];
-            // Duvarlar
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) return true;
-            // Kendi vücudu
             for (let i = 1; i < snake.length; i++) {
                 if (head.x === snake[i].x && head.y === snake[i].y) return true;
             }
@@ -344,16 +366,40 @@
         function checkFoodEat() {
             const head = snake[0];
             if (head.x === food.x && head.y === food.y) {
-                // Puanı ekle
-                score += food.isGold ? 3 : 1;
+                
+                // Puan Hesaplama Sistemi
+                if (food.type === 'normal') {
+                    score += 4;
+                } else if (food.type === 'gold') {
+                    score += 10;
+                } else if (food.type === 'diamond') {
+                    score += 70;
+                    showAlert("💎 EFSANEVİ ELMAS ELMA! +70 PUAN!");
+                } else if (food.type === 'surprise') {
+                    // Sürpriz Kutusu Çekilişi (1, 2 veya 3)
+                    let rand = Math.floor(Math.random() * 3) + 1;
+                    if (rand === 1) {
+                        score += 50;
+                        showAlert("🎁 SÜPRİZ: +50 PUAN!");
+                    } else if (rand === 2) {
+                        score -= 70;
+                        if (score < 0) score = 0;
+                        showAlert("🎁 SÜPRİZ: PATLADIN! -70 PUAN!");
+                    } else if (rand === 3) {
+                        // ROKET MEKANİĞİ: En yüksek skoru 10 puan geç
+                        score = highScore + 10;
+                        showAlert("🚀 ROKET! REKORU 10 PUAN GEÇTİN!");
+                    }
+                }
+
                 document.getElementById("current-score").innerText = score;
                 
-                // Yılanı uzat
+                // Yılanı büyüt
                 snake.push({...snake[snake.length - 1]});
                 
-                // Oyunu hızlandır (Maksimum hıza kadar)
+                // Hızlanma
                 if (gameSpeed > 60) {
-                    gameSpeed -= 3;
+                    gameSpeed -= 2;
                     clearInterval(gameInterval);
                     gameInterval = setInterval(mainGameLoop, gameSpeed);
                 }
@@ -367,10 +413,17 @@
             food.x = Math.floor(Math.random() * tileCount);
             food.y = Math.floor(Math.random() * tileCount);
             
-            // %15 ihtimalle Altın Yem çıksın
-            food.isGold = Math.random() < 0.15;
+            let chance = Math.random();
+            if (chance < 0.03) {
+                food.type = 'diamond'; // %3 Elmas
+            } else if (chance < 0.13) {
+                food.type = 'surprise'; // %10 Sürpriz Kutu
+            } else if (chance < 0.28) {
+                food.type = 'gold'; // %15 Altın Elma
+            } else {
+                food.type = 'normal'; // Geri kalanı normal elma
+            }
 
-            // Yılanın üstünde çıkmasın
             for (let part of snake) {
                 if (part.x === food.x && part.y === food.y) {
                     generateFood();
@@ -404,18 +457,16 @@
             gameInterval = setInterval(mainGameLoop, gameSpeed);
         }
 
-        // Mağaza Sistemleri
         function buyOrSelectSkin(id, cost) {
             if (unlockedSkins.includes(id)) {
                 selectSkin(id);
             } else {
-                // En yüksek skora göre satın alma kontrolü
                 if (highScore >= cost) {
                     unlockedSkins.push(id);
                     localStorage.setItem("unlockedSkins", JSON.stringify(unlockedSkins));
                     selectSkin(id);
                 } else {
-                    alert(`Bu temayı açmak için en yüksek skorunun en az ${cost} olması lazım kral! Biraz daha oyna.`);
+                    alert(`Bu temayı açmak için en yüksek skorunun en az ${cost} olması lazım kral!`);
                 }
             }
         }
@@ -447,7 +498,6 @@
             }
         }
 
-        // Kontroller
         window.addEventListener("keydown", e => {
             switch (e.key) {
                 case "ArrowUp": if (direction.y === 0) direction = {x: 0, y: -1}; break;
@@ -457,13 +507,11 @@
             }
         });
 
-        // Mobil Buton Atamaları
         document.getElementById("up").addEventListener("click", () => { if (direction.y === 0) direction = {x: 0, y: -1}; });
         document.getElementById("down").addEventListener("click", () => { if (direction.y === 0) direction = {x: 0, y: 1}; });
         document.getElementById("left").addEventListener("click", () => { if (direction.x === 0) direction = {x: -1, y: 0}; });
         document.getElementById("right").addEventListener("click", () => { if (direction.x === 0) direction = {x: 1, y: 0}; });
 
-        // Başlangıç
         updateThemeStyles();
         updateShopButtons();
         generateFood();
